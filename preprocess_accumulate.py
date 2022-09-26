@@ -6,9 +6,6 @@ from collections import defaultdict
 from tqdm import tqdm
 from pprint import pprint
 
-# Max number of top tracks per day
-TOP_N = 8
-
 with open("./data/all_streams.json", encoding="utf-8") as fin:
     all_streams = json.load(fin)
 
@@ -54,11 +51,7 @@ for day_count in range(total_days):
         name = track_to_name(track[0])
         todays_rankings[name] = i
 
-        # Modify previous ranking if necessary
-        if day_count > 1 and name not in rankings[day_count - 1]:
-            rankings[day_count - 1][name] = TOP_N
-
-    accumulated.append(top_tracks[:10])
+    accumulated.append(top_tracks)
     rankings.append(todays_rankings)
 
 

@@ -1,27 +1,20 @@
-/**
- * https://stackoverflow.com/questions/9763441/milliseconds-to-time-in-javascript
- * Convert (milli)seconds to time string (hh:mm:ss[:mss]).
- *
- * @param Boolean seconds
- *
- * @return String
- */
-Number.prototype.toTimeString = function (seconds) {
-  var _24HOURS = 8.64e7; // 24*60*60*1000
-
-  var ms = seconds ? this * 1000 : this,
-    endPos = ~(4 * !!seconds), // to trim "Z" or ".sssZ"
-    timeString = new Date(ms).toISOString().slice(11, endPos);
-
-  if (ms >= _24HOURS) {
-    // to extract ["hh", "mm:ss[.mss]"]
-    var parts = timeString.split(/:(?=\d{2}:)/);
-    parts[0] -= -24 * Math.floor(ms / _24HOURS);
-    timeString = parts.join(':');
+// https://stackoverflow.com/questions/9763441/milliseconds-to-time-in-javascript
+export function msToTime(s) {
+  // Pad to 2 or 3 digits, default is 2
+  function pad(n, z) {
+    z = z || 2;
+    return ('00' + n).slice(-z);
   }
 
-  return timeString;
-};
+  var ms = s % 1000;
+  s = (s - ms) / 1000;
+  var secs = s % 60;
+  s = (s - secs) / 60;
+  var mins = s % 60;
+  var hrs = (s - mins) / 60;
+
+  return pad(hrs) + ':' + pad(mins) + ':' + pad(secs);
+}
 
 /*
     cyrb53 (c) 2018 bryc (github.com/bryc)

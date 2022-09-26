@@ -1,10 +1,16 @@
 import { accumulated } from '../data/accumulated.js';
-import { cyrb53, trackToName, cubicInterp, cosineInterp } from './utils.js';
+import {
+  cyrb53,
+  trackToName,
+  cubicInterp,
+  cosineInterp,
+  msToTime,
+} from './utils.js';
 
 let { streamData, rankings, startDate } = accumulated;
 startDate = new Date(Date.parse(startDate));
 
-const BAR_HEIGHT = 60;
+const BAR_HEIGHT = 40;
 const BAR_PAD = 10;
 const GRAPH_X = 100;
 
@@ -23,11 +29,8 @@ const dayToDateObj = (day) => {
   return new Date(startDate.getTime() + day * 60 * 60 * 24 * 1000);
 };
 
-const drawBar = (entry, rank) => {
+const drawBar = (entry, rank, barWidth) => {
   // entry is [[artist, track], millis]
-
-  // barWidth will probably be extracted at some point
-  const barWidth = entry[1] / 20000;
 
   fill(trackToColor(entry[0][1]));
   noStroke();
@@ -36,12 +39,16 @@ const drawBar = (entry, rank) => {
   const barCenterY = rankToY(rank) + BAR_HEIGHT / 2;
 
   fill(255);
-  textSize(30);
+  textSize(BAR_HEIGHT * 0.5);
   textStyle('normal');
   textAlign('left', 'center');
-  text(trackToName(entry[0]), GRAPH_X + 10, barCenterY);
+  text(
+    `(${msToTime(entry[1])}) ${trackToName(entry[0])}`,
+    GRAPH_X + 10,
+    barCenterY
+  );
   textAlign('right', 'center');
-  text(parseInt(rank) + 1, GRAPH_X - 20, barCenterY);
+  text(Math.round(rank) + 1, GRAPH_X - 20, barCenterY);
 };
 
 const drawDay = (day) => {
@@ -55,20 +62,33 @@ const drawDay = (day) => {
   day = parseInt(day);
 
   // PROBLEM: songs that rise from below 8 are jumpy
-  streamData[day].slice(0, 10).forEach((entry, rank) => {
+  let tracks = new Set([...streamData[day], ...streamData[day + 1]]);
+  let seen = new Set();
+
+  tracks.forEach((entry) => {
     // entry is [[artist, track], millis]
     // Interpolate rankings
     let name = trackToName(entry[0]);
+    if (seen.has(name)) {
+      return;
+    }
+    seen.add(name);
+
+    const normRank = (rank) => {
+      return rank !== undefined ? rank : 12;
+    };
 
     // TODO: Make more sophisticated cubic interpolation
-    let y0 = rankings[day > 1 ? day - 1 : 0][name];
-    let y1 = rankings[day][name];
-    let y2 = rankings[day + 1][name];
-    let y3 = rankings[day + 2][name];
+    let y0 = normRank(rankings[day > 1 ? day - 1 : 0][name]);
+    let y1 = normRank(rankings[day][name]);
+    let y2 = normRank(rankings[day + 1][name]);
+    let y3 = normRank(rankings[day + 2][name]);
+
     // let trueRank = cubicInterp(y0, y1, y2, y3, fraction);
     let trueRank = cosineInterp(y1, y2, fraction);
+    let barWidth = entry[1] / 20000;
 
-    drawBar(entry, trueRank);
+    drawBar(entry, trueRank, barWidth);
   });
 };
 
@@ -77,7 +97,8 @@ const draw = () => {
 
   let x = map(constrain(mouseX, 0, width), 0, width, 0, streamData.length - 1);
 
-  let day = x;
+  let day = frameCount / 60 + 300;
+  // let day = x;
 
   drawDay(day);
 };
