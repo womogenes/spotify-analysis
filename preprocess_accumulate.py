@@ -41,24 +41,30 @@ def track_to_name(track):
 # Rip no comments
 accumulated = []
 rankings = []
+durations = []
+
 for day_count in range(total_days):
     day = min_day + dt.timedelta(days=day_count)
     time_totals = moving_avgs[day]
     top_tracks = sorted(time_totals.items(), key=lambda x: -x[1])
 
     todays_rankings = {}
+    todays_durations = {}
     for i, track in enumerate(top_tracks):
         name = track_to_name(track[0])
         todays_rankings[name] = i
+        todays_durations[name] = track[1]
 
     accumulated.append(top_tracks)
     rankings.append(todays_rankings)
+    durations.append(todays_durations)
 
 
 with open("./data/accumulated.js", "w", encoding="utf-8") as fout:
     json_str = json.dumps({
         "startDate": min_day.strftime("%Y-%m-%d"),
         "streamData": accumulated,
-        "rankings": rankings
+        "rankings": rankings,
+        "durations": durations
     })
     fout.write(f"export const accumulated = {json_str};")

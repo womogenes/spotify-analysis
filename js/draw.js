@@ -7,7 +7,7 @@ import {
   msToTime,
 } from './utils.js';
 
-let { streamData, rankings, startDate } = accumulated;
+let { streamData, rankings, durations, startDate } = accumulated;
 startDate = new Date(Date.parse(startDate));
 
 const BAR_HEIGHT = 40;
@@ -16,7 +16,7 @@ const GRAPH_X = 100;
 
 const rankToY = (rank) => {
   // Get y-coordinate given a 0-8 ranking
-  return rank * (BAR_HEIGHT + BAR_PAD) + 130;
+  return rank * (BAR_HEIGHT + BAR_PAD) + 120;
 };
 
 const trackToColor = (x) => {
@@ -29,21 +29,21 @@ const dayToDateObj = (day) => {
   return new Date(startDate.getTime() + day * 60 * 60 * 24 * 1000);
 };
 
-const drawBar = (entry, rank, barWidth) => {
+const drawBar = (entry, rank, duration) => {
   // entry is [[artist, track], millis]
+  const barCenterY = rankToY(rank) + BAR_HEIGHT / 2;
+  const barWidth = duration / 20000;
 
   fill(trackToColor(entry[0][1]));
   noStroke();
   rect(GRAPH_X, rankToY(rank), barWidth, BAR_HEIGHT);
-
-  const barCenterY = rankToY(rank) + BAR_HEIGHT / 2;
 
   fill(255);
   textSize(BAR_HEIGHT * 0.5);
   textStyle('normal');
   textAlign('left', 'center');
   text(
-    `(${msToTime(entry[1])}) ${trackToName(entry[0])}`,
+    `${trackToName(entry[0])} (${msToTime(duration)})`,
     GRAPH_X + 10,
     barCenterY
   );
@@ -86,9 +86,13 @@ const drawDay = (day) => {
 
     // let trueRank = cubicInterp(y0, y1, y2, y3, fraction);
     let trueRank = cosineInterp(y1, y2, fraction);
-    let barWidth = entry[1] / 20000;
+    let duration = cosineInterp(
+      durations[day][name] || 0,
+      durations[day + 1][name] || 0,
+      fraction
+    );
 
-    drawBar(entry, trueRank, barWidth);
+    drawBar(entry, trueRank, duration);
   });
 };
 
