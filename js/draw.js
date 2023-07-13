@@ -32,11 +32,11 @@ const dayToDateObj = (day) => {
 const drawBar = (entry, rank, duration) => {
   // entry is [[artist, track], millis]
   const barCenterY = rankToY(rank) + BAR_HEIGHT / 2;
-  const barWidth = duration / 20000;
+  const barWidth = duration / 50000;
 
   fill(trackToColor(entry[0][1]));
   noStroke();
-  rect(GRAPH_X, rankToY(rank), barWidth, BAR_HEIGHT);
+  rect(GRAPH_X, rankToY(rank), barWidth, BAR_HEIGHT, 10);
 
   fill(255);
   textSize(BAR_HEIGHT * 0.5);
@@ -56,7 +56,9 @@ const drawDay = (day) => {
   fill(255);
   textStyle('bold');
   textAlign('right', 'top');
-  text(dayToDateObj(day).toLocaleDateString(), width - 50, 50);
+  text(dayToDateObj(day).toLocaleDateString(), width - 50, 40);
+  textAlign('left', 'top');
+  text('Spotify top tracks', 50, 40);
 
   let fraction = day % 1;
   day = parseInt(day);
@@ -101,8 +103,8 @@ const draw = () => {
 
   let x = map(constrain(mouseX, 0, width), 0, width, 0, streamData.length - 1);
 
-  let day = frameCount / 60 + 300;
-  // let day = x;
+  // let day = frameCount / 60 + 300;
+  let day = min(parseInt(x), streamData.length - 3);
 
   drawDay(day);
 };

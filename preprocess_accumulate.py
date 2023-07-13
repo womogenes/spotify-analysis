@@ -25,7 +25,7 @@ for stream in tqdm(all_streams):
     play_time = stream[3]
     track_id = (stream[1], stream[2])
 
-    for i in range(0, 7):
+    for i in range(0, 14):
         # Add a few days
         moving_avgs[day + dt.timedelta(days=i)][track_id] += play_time
 
